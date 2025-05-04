@@ -221,6 +221,7 @@ type
 
   Activity* = object
     details*, state*, url*: string
+    activityType*: Option[ActivityKind]
     timestamps*: ActivityTimestamps
     party*: Option[ActivityParty]
     assets*: Option[ActivityAssets] ## images for the presence and their hover texts
@@ -228,10 +229,12 @@ type
     instance*: Option[bool]
 
   ActivityKind* = enum
-    Playing ## Playing {name}
-    Streaming ## Streaming {details}
-    Listening ## Listening to {name}
-    Custom ## {emoji} {name}
+    Playing = 0 ## Playing {name}
+    Streaming = 1 ## Streaming {details}
+    Listening = 2 ## Listening to {name}
+    Watching = 3 ## Watching {name}
+    Custom = 4 ## {emoji} {name}
+    Competing = 5 ## 	Competing in {name}
 
   ActivityJoinRequestReply* = enum
     No, Yes, Ignore
@@ -683,6 +686,10 @@ func composeSetActivity(a: Activity, pid: int): string =
   result.addStringField a, details
   result.addStringField a, state
   result.addStringField a, url
+  if a.activityType.isSome:
+    result.add "\"type\":"
+    result.addInt int(a.activityType.get)
+    result.add ','
   if a.assets.isSome:
     result.add "\"assets\":{"
     let ass = a.assets.get
